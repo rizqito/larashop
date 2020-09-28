@@ -9,12 +9,15 @@ class UserController extends Controller
     public function index(Request $r){
         $user          = User::paginate(10);
         $filterKeyword = $r->get('keyword');
+        $status        = $r->get('status');
         if($filterKeyword){
-            $user = User::where('email','LIKE','%$filterKeyword%')->get();
-        }else{
-            
+            if($status){
+                $user = User::where('email','LIKE','%$filterKeyword%')->where('status',$status)->paginate(10);
+            }else{
+                $user = User::where('email','LIKE','%$filterKeyword%')->paginate(10);
+            }
         }
-        return view('users.index',compact('user'));
+        return view('users.index',compact('user'));        
     }
 
     public function create(){
