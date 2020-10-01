@@ -2,10 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request, App\Category, Auth, Str, Storage;
+use Illuminate\Http\Request, App\Category, Auth, Str, Storage, Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class CategoryController extends Controller
 {
+    public function __construct(){
+        $this->middleware(function($request, $next){
+            if(Gate::allows('manage-categories')) return $next($request);
+            abort(403, 'Anda tidak memiliki cukup hak akses');
+        });
+    }
+
     public function index(Request $r){        
         $cat = Category::paginate(10);
         $filter = $r->get('name');
@@ -20,6 +29,11 @@ class CategoryController extends Controller
     }
 
     public function store(Request $r){
+        Validator::make($r->all(), [
+            "name" => "required|min:3|max:20",
+            "image" => "required"
+        ])->validate();
+
         $cat       = new Category;
         $cat->name = $r->get('name');
         $cat->slug = Str::slug($r->get('name'), '-');
@@ -46,9 +60,19 @@ class CategoryController extends Controller
     }
 
     public function update(Request $r, $id){
+        $cat       = Category::findOrFail($id);
+        Validator::make($r->all(), [
+            "name" => "required|min:3|max:20",
+            "image" => "required",
+            "slug" => [
+                "required",
+                Rule::unique("categories")->ignore($cat->slug, "slug")
+            ]
+        ])->validate();
+
         $name      = $r->get('name');
         $slug      = $r->get('slug');
-        $cat       = Category::findOrFail($id);
+
         $cat->name = $name;
         $cat->slug = $slug;        
         if($r->file('image')){

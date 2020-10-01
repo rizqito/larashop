@@ -3,17 +3,23 @@
 @section('content')
 <div class="col-md-8">
     @if(session('status'))
-        <div class="alert alert-success">
-            {{ session('status') }}
-        </div>
+    <div class="alert alert-success">
+        {{ session('status') }}
+    </div>
     @endif
-    <form action="{{ route('categories.store') }}" method="post" enctype="multipart/form-data" class="bg-white shadow-sm p-3">
+    <form enctype="multipart/form-data" class="bg-white shadow-sm p-3" action="{{route('categories.store')}}" method="POST">
         @csrf
-        <label for="name">Category name</label>
-        <input type="text" class="form-control" type="text" name="name">
+        <label>Category name</label><br>
+        <input type="text" class="form-control {{$errors->first('name') ? 'is-invalid' : ''}}" value="{{old('name')}}" name="name">
+        <div class="invalid-feedback">
+            {{$errors->first('name')}}
+        </div>
         <br>
-        <label for="username">Category Image</label>
-        <input type="file" class="form-control" name="image">
+        <label>Category image</label>
+        <input type="file" class="form-control {{$errors->first('image') ? 'is-invalid' : ''}}" name="image">
+        <div class="invalid-feedback">
+            {{$errors->first('image')}}
+        </div>
         <br>
         <input type="submit" class="btn btn-primary" value="Save">
     </form>

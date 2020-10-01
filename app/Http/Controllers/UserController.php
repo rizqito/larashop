@@ -2,10 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request, App\User;
+use Illuminate\Http\Request, App\User, Validator;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {    
+    public function __construct(){
+        $this->middleware(function($request, $next){
+            if(Gate::allows('manage-users')) return $next($request);
+            abort(403, 'Anda tidak memiliki cukup hak akses');
+        });
+    }
+
     public function index(Request $r){
         $user          = User::paginate(10);
         $filterKeyword = $r->get('keyword');
@@ -25,6 +33,18 @@ class UserController extends Controller
     }
 
     public function store(Request $r){
+        Validator::make($r->all(),[
+            "name" => "required|min:5|max:100",
+            "username" => "required|min:5|max:20",
+            "roles" => "required",
+            "phone" => "required|digits_between:10,12",
+            "address" => "required|min:20|max:200",
+            "avatar" => "required",
+            "email" => "required|email",
+            "password" => "required",
+            "password_confirmation" => "required|same:password"
+        ])->validate();
+
         $data = new User;
         $data->name     = $r->get('name');
         $data->username = $r->get('username');
@@ -54,6 +74,13 @@ class UserController extends Controller
     }
 
     public function update(Request $r, $id){
+        Validator::make($r->all(), [
+            "name" => "required|min:5|max:100",
+            "roles" => "required",
+            "phone" => "required|digits_between:10,12",
+            "address" => "required|min:20|max:200",
+        ])->validate();
+            
         $user          = User::findOrFail($id);
         $user->name    = $r->get('name');
         $user->roles   = json_encode($r->get('roles'));

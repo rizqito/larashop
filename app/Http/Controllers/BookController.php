@@ -2,10 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request, App\Book, Str, Auth;
+use Illuminate\Http\Request, App\Book, Str, Auth, Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class BookController extends Controller
 {
+    public function __construct(){
+        $this->middleware(function($request, $next){
+            if(Gate::allows('manage-books')) return $next($request);
+            abort(403, 'Anda tidak memiliki cukup hak akses');
+        });
+    }
+
     public function index(Request $request){
         $status = $request->get('status');
         $keyword = $request->get('keyword') ? $request->get('keyword') : '';
@@ -14,7 +23,7 @@ class BookController extends Controller
         } else {
             $books = Book::with('categories')->where("title", "LIKE", "%".$keyword."%")->paginate(10);
         }
-        return view('books.index', compact('books');
+        return view('books.index', compact('books'));
     }
 
     public function create(){
@@ -22,6 +31,16 @@ class BookController extends Controller
     }
 
     public function store(Request $r){
+        Validator::make($r->all(), [
+            "title" => "required|min:5|max:200",
+            "description" => "required|min:20|max:1000",
+            "author" => "required|min:3|max:100",
+            "publisher" => "required|min:3|max:200",
+            "price" => "required|digits_between:0,10",
+            "stock" => "required|digits_between:0,10",
+            "cover" => "required"
+        ])->validate();
+
         $book = new Book;
         $book->title = $r->get('title');
         $book->description = $r->get('description');
@@ -57,6 +76,20 @@ class BookController extends Controller
 
     public function update(Request $request, $id){
         $book = Book::findOrFail($id);
+
+        Validator::make($request->all(), [
+            "title" => "required|min:5|max:200",
+            "slug" => [
+            "required",
+            Rule::unique("books")->ignore($book->slug, "slug")
+            ],
+            "description" => "required|min:20|max:1000",
+            "author" => "required|min:3|max:100",
+            "publisher" => "required|min:3|max:200",
+            "price" => "required|digits_between:0,10",
+            "stock" => "required|digits_between:0,10",
+        ])->validate();
+            
         $book->title = $request->get('title');
         $book->slug = $request->get('slug');
         $book->description = $request->get('description');

@@ -65,7 +65,7 @@
             <select name="categories[]" multiple id="categories" class="form-control"></select>
             <br><br>
             <label for="stock">Stock</label>
-            <input type="number" class="form-control" id="stock" name="stock" min="0" value="0" value="{{ $book->stock }}">
+            <input type="number" class="form-control" id="stock" name="stock" min="0" value="{{ $book->stock }}">
             <br>
             <label for="author">Author</label><br>
             <input type="text" class="form-control" name="author" id="author" placeholder="Book author" value="{{ $book->author }}">
