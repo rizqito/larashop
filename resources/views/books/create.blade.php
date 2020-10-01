@@ -4,18 +4,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script>
     $('#categories').select2({
-        ajax:{
-            url: 'http://localhost:8000/ajax/categories/search',
-            processResult: function(data){
-                return{
-                    results: data.map(function(item){
-                        return{
-                            id: item.id,
-                            text: item.name
-                        }
-                    })
-                }
-            }
+        placeholder: "Pilih kategori ...",
+        // minimumInputLength: 2,
+        ajax: {
+            url: '/ajax/categories/search',
+            dataType: 'json',
+            data: function (params) {
+                return {
+                    q: $.trim(params.term)
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data
+                };
+            },
+            cache: true
         }
     });
 </script>

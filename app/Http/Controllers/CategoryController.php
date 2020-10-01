@@ -98,9 +98,12 @@ class CategoryController extends Controller
     }
 
     public function ajaxSearch(Request $r){
-        $keyword    = $r->get('q');
-        $categories = Category::where('name','LIKE','%$keyword%')->get();
-
-        return $categories;
+        $term = $r->q;
+        $tags = Category::where('name','LIKE', '%'.$term.'%')->limit(5)->get();
+        $formatted_tags = [];
+        foreach ($tags as $tag) {
+            $formatted_tags[] = ['id' => $tag->id, 'text' => $tag->name];
+        }
+        return \Response::json($formatted_tags);
     }
 }
